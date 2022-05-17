@@ -1,27 +1,106 @@
 const router = require('express').Router();
-const { Tag, Product, ProductTag } = require('../../models');
+const { Tag, Product, ProductTag, Category } = require('../../models');
 
 // The `/api/tags` endpoint
 
 router.get('/', (req, res) => {
+  console.log('======================');
   // find all tags
   // be sure to include its associated Product data
+Tag.findAll({
+  attributes: [
+    'id',
+    'tag_name'
+  ],
+  include: [
+    {
+      model: Product,
+      attributes: ['id', 'product_name', 'price', 'stock', 'category_id']
+    }
+  ]
+})
+.then(dbPostData => res.json(dbPostData))
+    .catch(err => {
+      console.log(err);
+      res.status(500).json(err);
+    });
 });
 
 router.get('/:id', (req, res) => {
   // find a single tag by its `id`
   // be sure to include its associated Product data
+  Tag.findOne({
+    where: {
+      id: req.params.id
+    },
+    attributes: [
+      'id',
+      'tag_name',
+    ],
+    include: [
+      {
+      model: Category,
+      attributes: ['id', 'category_name']
+      },
+      {
+        model: Product,
+        attributes: ['id', 'product_name', 'price', 'stock', 'category_id']
+      },
+      {
+        model: ProductTag,
+        attributes: ['id', 'product_id', 'tag_id']
+      }
+    ]
+   
+  })
+    .then(dbPostData => {
+      if (!dbPostData) {
+        res.status(404).json({ message: 'No post found with this id' });
+        return;
+      }
+      res.json(dbPostData);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json(err);
+    });
 });
 
 router.post('/', (req, res) => {
   // create a new tag
+  Tag.create(req.body)({
+    id: req.body.id,
+    tag_name: req.body.tag_name
+  })
 });
 
 router.put('/:id', (req, res) => {
   // update a tag's name by its `id` value
+  Tag.update(req.body, {
+    where: {
+      id: req.params.id
+    }
+  })
 });
 
 router.delete('/:id', (req, res) => {
+  console.log('id', req.params.id);
+  Tag.destroy({
+    where: {
+      id: req.params.id
+    }
+  })
+    .then(dbPostData => {
+      if (!dbPostData) {
+        res.status(404).json({ message: 'No tag found with this id' });
+        return;
+      }
+      res.json(dbPostData);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json(err);
+    });
   // delete on tag by its `id` value
 });
 

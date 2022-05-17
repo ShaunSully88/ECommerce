@@ -55,7 +55,11 @@ router.get('/:id', (req, res) => {
      },
      {
        model: Category,
-       attributes: ['category_name']
+       attributes: ['id', 'category_name']
+     },
+     {
+     model: ProductTag,
+     attributes: ['id', 'product_id', 'tag_id']
      }
    ]
   })
@@ -84,7 +88,7 @@ router.get('/:id', (req, res) => {
       tagIds: [1, 2, 3, 4]
     }
   */
- router.post('/', (req, res) => {)
+ router.post('/', (req, res) => {
   Product.create(req.body)({
     
       // if there's product tags, we need to create pairings to bulk create in the ProductTag model
@@ -92,7 +96,7 @@ router.get('/:id', (req, res) => {
     product_name: req.body.product_name,
     price: req.body.price,
     stock: req.body.stock,
-    category_id: req.body.category_id
+    tag_id: req.body.tag_id
   })
       if (req.body.tagIds.length) {
         const productTagIdArr = req.body.tagIds.map((tag_id) => {
