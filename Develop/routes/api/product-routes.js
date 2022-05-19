@@ -8,26 +8,17 @@ const { Product, Category, Tag, ProductTag } = require('../../models');
 router.get('/', (req, res) => {
   console.log('===================');
   Product.findAll({
-    attributes: [
-      'id',
-      'product_name',
-      'price',
-      'stock',
-      'category_id'
-      [sequelize.literal('(SELECT COUNT(*) FROM productTag WHERE product.id = productTag.product_id)'), 'productTag_count']
-   ],
+
    include: [
      {
-       model: Tag,
-       attributes: ['id', 'tag_name']
+       model: Tag, 
      },
      {
        model: Category,
-       attributes: ['category_name']
-     }
-   ]
+     },
+   ],
   })
-  .then(dbPostData => res.json(dbPostData))
+  .then(dbProductData => res.json(dbProductData))
     .catch(err => {
       console.log(err);
       res.status(500).json(err);
@@ -40,35 +31,24 @@ router.get('/', (req, res) => {
 // get one product
 router.get('/:id', (req, res) => {
   Product.findOne({
-    attributes: [
-      'id',
-      'product_name',
-      'price',
-      'stock',
-      'category_id'
-      [sequelize.literal('(SELECT COUNT(*) FROM productTag WHERE product.id = productTag.product_id)'), 'productTag_count']
-   ],
+    where: {
+      id: req.params.id,
+    },
    include: [
      {
        model: Tag,
-       attributes: ['id', 'tag_name']
      },
      {
        model: Category,
-       attributes: ['id', 'category_name']
      },
-     {
-     model: ProductTag,
-     attributes: ['id', 'product_id', 'tag_id']
-     }
-   ]
+   ],
   })
-  .then(dbPostData => {
-    if (!dbPostData) {
+  .then(dbProductData => {
+    if (!dbProductData) {
       res.status(404).json({ message: 'No product found with this id' });
       return;
     }
-    res.json(dbPostData);
+    res.json(dbProductData);
   })
   .catch(err => {
     console.log(err);
@@ -89,15 +69,17 @@ router.get('/:id', (req, res) => {
     }
   */
  router.post('/', (req, res) => {
-  Product.create(req.body)({
+  Product.create({
     
       // if there's product tags, we need to create pairings to bulk create in the ProductTag model
-      id: req.body.id,
+  
     product_name: req.body.product_name,
     price: req.body.price,
     stock: req.body.stock,
-    tag_id: req.body.tag_id
+    tag_id: req.body.tag_id,
+    category_id: req.body.category_id,
   })
+  .then((product) => {
       if (req.body.tagIds.length) {
         const productTagIdArr = req.body.tagIds.map((tag_id) => {
           return {
@@ -115,7 +97,7 @@ router.get('/:id', (req, res) => {
       console.log(err);
       res.status(400).json(err);
     });
-
+});
 
 // update product
 router.put('/:id', (req, res) => {
@@ -164,14 +146,14 @@ router.delete('/:id', (req, res) => {
   Product.destroy({
     where: {
       id: req.params.id
-    }
+    },
   })
-    .then(dbPostData => {
-      if (!dbPostData) {
+    .then(dbProductData => {
+      if (!dbProductData) {
         res.status(404).json({ message: 'No product found with this id' });
         return;
       }
-      res.json(dbPostData);
+      res.json(dbProductData);
     })
     .catch(err => {
       console.log(err);
