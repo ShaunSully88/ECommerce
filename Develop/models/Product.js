@@ -23,9 +23,6 @@ Product.init(
     price: {
       type: DataTypes.DECIMAL,
       allowNull: false,
-      validate: {
-        isDECIMAL: true
-      }
     },   
     stock: {
       type: DataTypes.INTEGER,
